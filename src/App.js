@@ -34,6 +34,15 @@ const App = () => {
       setIsSearching(false);
     })
   };
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      // Load new posts every minute
+      loadPostInfos();
+    }, 60000);
+  
+    return () => clearInterval(interval); // On unmount
+  }, [])
   
   React.useEffect(loadPostInfos, [])
 
