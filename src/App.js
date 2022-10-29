@@ -9,8 +9,7 @@ import { TopicSearch } from './components/TopicSearch';
 import { UserSearch } from './components/UserSearch';
 import { NewPost } from './components/NewPost';
 import './App.css';
-import { arweave, contract, createPostInfo } from './lib/api';
-import { readContract } from 'smartweave';
+import { contract, createPostInfo } from './lib/api';
 
 async function getPostInfos() {
   if (contract.then) {
@@ -28,14 +27,15 @@ const App = () => {
   const [postInfos, setPostInfos] = React.useState([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isWalletConnected, setIsWalletConnected] = React.useState(false);
-  
-  React.useEffect(() => {
-    setIsSearching(true)
+
+  const loadPostInfos = () => {
     getPostInfos().then(posts => {
       setPostInfos(posts);
       setIsSearching(false);
-    });
-  }, [])
+    })
+  };
+  
+  React.useEffect(loadPostInfos, [])
 
   return (
     <div id="app">
@@ -52,6 +52,7 @@ const App = () => {
               isWalletConnected={isWalletConnected}
               isSearching={isSearching}
               postInfos={postInfos}
+              onPostMessage={loadPostInfos} 
             />}
             />
             <Route path="/topics" element={<Topics />}>
@@ -73,7 +74,7 @@ const Home = (props) => {
   return (
     <>
       <header>Home</header>
-      <NewPost isLoggedIn={props.isWalletConnected} />
+      <NewPost isLoggedIn={props.isWalletConnected} onPostMessage={props.onPostMessage} />
       {props.isSearching && <ProgressSpinner />}
       <Posts postInfos={props.postInfos} />
     </>
