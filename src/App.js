@@ -20,7 +20,7 @@ async function getPostInfos() {
   const { cachedValue } = await contract.readState();
   const latestState = cachedValue.state;
   console.log(latestState);
-  return latestState.messages.map(message => createPostInfo(message));
+  return latestState.messages.map(message => createPostInfo(message)).reverse();
 }
 
 const App = () => {
