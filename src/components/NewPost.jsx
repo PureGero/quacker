@@ -1,6 +1,7 @@
 import React from 'react'
 import TextareaAutosize from 'react-textarea-autosize';
-import { arweave, getTopicString } from '../lib/api';
+import { interactWrite } from 'smartweave';
+import { arweave, contract, getTopicString } from '../lib/api';
 
 export const NewPost = (props) => {
   const [postValue, setPostValue] = React.useState("");
@@ -8,17 +9,18 @@ export const NewPost = (props) => {
 
   async function onPostButtonClicked() {
     setIsPosting(true);
-    let tx = await arweave.createTransaction({ data:postValue })
-    tx.addTag('App-Name', 'PublicSquare')
-    tx.addTag('Content-Type', 'text/plain')
-    tx.addTag('Version', '1.0.1')
-    tx.addTag('Type', 'post')
+    const input = {
+      function: 'postMessage',
+      content: postValue
+    };
+
     try {
-      let result = await window.arweaveWallet.dispatch(tx);
+      // `interactWrite` will return the transaction ID.
+      await contract.connect('use_wallet').writeInteraction(input);
       setPostValue("");
       // setTopicValue("");
       if (props.onPostMessage) {
-        props.onPostMessage(result.id);
+        props.onPostMessage(0);
       }
     } catch (err) {
       console.error(err);

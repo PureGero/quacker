@@ -9,19 +9,20 @@ import { TopicSearch } from './components/TopicSearch';
 import { UserSearch } from './components/UserSearch';
 import { NewPost } from './components/NewPost';
 import './App.css';
-import { buildQuery, arweave, createPostInfo } from './lib/api';
+import { arweave, contract, createPostInfo } from './lib/api';
+import { readContract } from 'smartweave';
 
 async function getPostInfos() {
-  const query = buildQuery();
-  const results = await arweave.api.post('/graphql', query)
-    .catch(err => {
-      console.error('GraphQL query failed');
-       throw new Error(err);
-    });
-  const edges = results.data.data.transactions.edges;
-  console.log(edges);
-  return edges.map(edge => createPostInfo(edge.node));
- }
+  if (contract.then) {
+    // Flatten promise
+    contract = await contract;
+  }
+
+  const { cachedValue } = await contract.readState();
+  const latestState = cachedValue.state;
+  console.log(latestState);
+  return latestState.messages.map(message => createPostInfo(message));
+}
 
 const App = () => {
   const [postInfos, setPostInfos] = React.useState([]);

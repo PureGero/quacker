@@ -1,7 +1,10 @@
 import Arweave from 'arweave';
 import Account from 'arweave-account';
+import { WarpFactory } from 'warp-contracts';
 
 export const arweave = Arweave.init({});
+export let warp = WarpFactory.forMainnet();
+export let contract = warp.contract("152OUN0NMkjd38Ff_w2a-sEZbaoxP4uRyBeLNxowIzU");
 
 export const account = new Account({
   cacheIsActivated: true,
@@ -16,65 +19,26 @@ export const isWellFormattedAddress = (input) => {
   return re.test(input);
 }
 
-export const createPostInfo = (node) => {
-  const ownerAddress = node.owner.address;
-  const height = node.block ? node.block.height : -1;
-  const timestamp = node.block ? parseInt(node.block.timestamp, 10) * 1000 : -1;
+export const createPostInfo = (message) => {
+  const ownerAddress = message.creator;
+  const timestamp = message.timestamp;
   const postInfo = {
-    txid: node.id,
+    txid: message.id,
     owner: ownerAddress,
     account: account.get(ownerAddress),
-    height: height,
-    length: node.data.size,
+    message: message.content,
+    length: message.content.length,
     timestamp: timestamp,
     request: null,
   }
   if (postInfo.length <= maxMessageLength) {
-    postInfo.request = arweave.api.get(`/${node.id}`, { timeout: 10000 })
+    postInfo.request = arweave.api.get(`/${message.id}`, { timeout: 10000 })
       .catch(() => { postInfo.error = 'timeout loading data' });
   } else {
     postInfo.error = `message is too large (exceeds ${maxMessageLength/1024}kb)`;
   }
   return postInfo;
 }
-
-export const buildQuery = () => {
-  const queryObject = { query: `{
-    transactions(first: 100,
-      tags: [
-        {
-          name: "App-Name",
-          values: ["PublicSquare"]
-        },
-        {
-          name: "Content-Type",
-          values: ["text/plain"]
-        }
-      ]
-    ) {
-      edges {
-        node {
-          id
-          owner {
-            address
-          }
-          data {
-            size
-          }
-          block {
-            height
-            timestamp
-          }
-          tags {
-            name,
-            value
-          }
-        }
-      }
-    }
-  }`}
-  return queryObject;
- }
 
 // in miliseconds
 var units = {
