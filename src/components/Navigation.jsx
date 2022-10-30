@@ -11,7 +11,7 @@ export const Navigation = () => {
       Created by potrace 1.15, written by Peter Selinger 2001-2017
     </metadata>
     <g transform="translate(0.000000,1150.000000) scale(0.100000,-0.100000)"
-      fill="#ffffff" stroke="none">
+      fill="#b6c9d1" stroke="none">
       <path d="M4623 11479 c-64 -41 -77 -78 -83 -234 l-5 -139 -40 -28 c-22 -15
 -47 -27 -57 -28 -28 0 -63 54 -87 134 l-23 77 -30 -18 c-53 -31 -69 -63 -80
 -154 -19 -167 -26 -189 -79 -243 l-49 -49 0 -71 c0 -39 9 -109 19 -156 11 -50

@@ -4,7 +4,7 @@ import { WarpFactory } from 'warp-contracts';
 
 export const arweave = Arweave.init({});
 export let warp = WarpFactory.forMainnet();
-export let contract = warp.contract("0UTp4AtN86SyVK_tWfXyRgO_Zsc5KiOqx90m4-p-Ibw");
+export let contract = warp.contract("qVyrY0zBNej-kfDXRQ-2OttuIbpoX3Oxwt6i-vmAGOI");
 export let connectedWalletAddress = null;
 export let addressToName = {};
 export let addressToPicture = {};
