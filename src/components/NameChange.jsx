@@ -1,38 +1,41 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import TextareaAutosize from 'react-textarea-autosize';
 import { arweave, contract } from '../lib/api.js';
 import { compressAccurately } from 'image-conversion';
 
-export const NewPost = (props) => {
-  const [postValue, setPostValue] = React.useState("");
+export const NameChange = (props) => {
+  const [postValue, setPostValue] = React.useState(props.username);
   const [isPosting, setIsPosting] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState(null);
+
+  useEffect(() => {
+    setPostValue(props.username);
+  }, [props.username]);
 
   async function onPostButtonClicked() {
     setIsPosting(true);
 
     const input = {
-      function: 'postMessage',
-      content: postValue,
-      timestamp: Date.now(),
+      function: 'setUserName',
+      name: postValue,
     };
 
     if (selectedFile) {
       const blob = await compressAccurately(selectedFile, {
         size: 80,
-        width: 450
+        width: 128
       });
       const fileData = await new Response(blob).arrayBuffer();
-      console.log("Uploading " + fileData.byteLength);
+      console.log("Uploading " + fileData);
       let tx = await arweave.createTransaction({ data: fileData })
       tx.addTag('App-Name', 'SocialApp')
       tx.addTag('Content-Type', 'text/plain')
       tx.addTag('Version', '1.0.0')
-      tx.addTag('Type', 'image')
+      tx.addTag('Type', 'profilepicture')
       try {
         const result = await window.arweaveWallet.dispatch(tx);
         console.log("Uploaded " + result.id);
-        input.image = result.id;
+        input.picture = result.id;
       } catch (err) {
         console.error(err);
       }
@@ -41,6 +44,7 @@ export const NewPost = (props) => {
     try {
       // `interactWrite` will return the transaction ID.
       await contract.connect('use_wallet').writeInteraction(input);
+      props.setUsername(postValue);
       setPostValue("");
       // setTopicValue("");
       if (props.onPostMessage) {
@@ -96,7 +100,7 @@ export const NewPost = (props) => {
             value={postValue}
             onChange={e => setPostValue(e.target.value)}
             rows="1" 
-            placeholder="What do you have to say?" 
+            placeholder="Enter a username here" 
           />
           <div className="newPost-postRow">
             {/* <div className="topic"
@@ -118,7 +122,7 @@ export const NewPost = (props) => {
                 disabled={isDisabled} 
                 onClick={onPostButtonClicked}
               >
-                Post
+                Update
               </button>
             </div>
           </div>
@@ -126,6 +130,6 @@ export const NewPost = (props) => {
       )
     }
   } else {
-    return (<div className="darkRow">Connect your wallet to start quacksting...</div>)
+    return (<div className="darkRow">Connect your wallet to view your profile...</div>)
   }
 };

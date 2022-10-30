@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ArweaveWebWallet } from 'arweave-wallet-connector';
+import { setConnectedWalletAddress, connectedWalletAddress, addressToName } from '../lib/api';
 import "./walletSelectButton.css";
 
 const NONE = "None";
@@ -14,22 +15,29 @@ const webWallet = new ArweaveWebWallet({
 export const WalletSelectButton = (props) => {
   const [showModal, setShowModal] = React.useState(false);
   const [activeWallet, setActiveWallet] = React.useState(NONE);
-  const [addressText, setAddressText] = React.useState("xxxxx...xxx");
 
   async function onWalletSelected(walletName) {
     let address = await window.arweaveWallet.getActiveAddress();
     if (address) {
-      const firstFive = address.substring(0,5);
-      const lastFive = address.substring(address.length-5);
-      setAddressText(`${firstFive}...${lastFive }`);
+      setConnectedWalletAddress(address);
       props.setIsConnected(true);
     }
+    props.setUsername(addressToName[address] || address);
     setActiveWallet(walletName);
   }
 
   async function onWalletDisconnected() {
+    setConnectedWalletAddress(null);
     setActiveWallet(NONE);
     props.setIsConnected(false);
+  }
+
+  let addressText = props.username;
+
+  if ((!addressText || addressText == connectedWalletAddress) && connectedWalletAddress) {
+    const firstFive = connectedWalletAddress.substring(0,5);
+    const lastFive = connectedWalletAddress.substring(connectedWalletAddress.length-5);
+    addressText = `${firstFive}...${lastFive }`;
   }
 
   return (

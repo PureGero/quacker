@@ -3,13 +3,13 @@ import { Routes, Route, Outlet, useParams, useNavigate } from 'react-router-dom'
 import { Navigation } from './components/Navigation';
 import { WalletSelectButton } from './components/WalletSelectButton';
 import { ProfileButton } from './components/ProfileButton';
+import { NameChange } from './components/NameChange';
 import { Posts } from './components/Posts';
 import { ProgressSpinner } from './components/ProgressSpinner';
-import { TopicSearch } from './components/TopicSearch';
 import { UserSearch } from './components/UserSearch';
 import { NewPost } from './components/NewPost';
 import './App.css';
-import { contract, createPostInfo } from './lib/api';
+import { contract, createPostInfo, setAddressToName, setAddressToPicture } from './lib/api';
 
 async function getPostInfos() {
   if (contract.then) {
@@ -20,6 +20,8 @@ async function getPostInfos() {
   const { cachedValue } = await contract.readState();
   const latestState = cachedValue.state;
   console.log(latestState);
+  setAddressToName(latestState.addressToName);
+  setAddressToPicture(latestState.addressToImage);
   return latestState.messages.map(message => createPostInfo(message)).reverse();
 }
 
@@ -27,6 +29,7 @@ const App = () => {
   const [postInfos, setPostInfos] = React.useState([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isWalletConnected, setIsWalletConnected] = React.useState(false);
+  const [username, setUsername] = React.useState("");
 
   const loadPostInfos = () => {
     getPostInfos().then(posts => {
@@ -51,8 +54,8 @@ const App = () => {
       <div id="content">
         <aside>
           <Navigation />
-          <WalletSelectButton setIsConnected={() => setIsWalletConnected(true)}/>
-          <ProfileButton isWalletConnected={isWalletConnected} />
+          <WalletSelectButton setIsConnected={() => setIsWalletConnected(true)} setUsername={setUsername} username={username}/>
+          {/* <ProfileButton isWalletConnected={isWalletConnected} /> */}
         </aside>
         <main>
           <Routes>
@@ -64,14 +67,18 @@ const App = () => {
               onPostMessage={loadPostInfos} 
             />}
             />
-            <Route path="/topics" element={<Topics />}>
-              <Route path="/topics/" element={<TopicSearch />} />
-              <Route path=":topic" element={<TopicResults />} />
-            </Route>
             <Route path="/users" element={<Users />}>
               <Route path="/users/" element={<UserSearch />} />
               <Route path=":addr" element={<UserResults />} />
             </Route>
+
+            <Route path="/profile" element={<Profile
+              isWalletConnected={isWalletConnected}
+              onPostMessage={loadPostInfos} 
+              username={username}
+              setUsername={setUsername}
+            />} />
+
           </Routes>
         </main>
       </div>
@@ -82,19 +89,19 @@ const App = () => {
 const Home = (props) => {
   return (
     <>
-      <header>Home</header>
+      <header>Quacks</header>
       <NewPost isLoggedIn={props.isWalletConnected} onPostMessage={props.onPostMessage} />
       {props.isSearching && <ProgressSpinner />}
-      <Posts postInfos={props.postInfos} />
+      <Posts isLoggedIn={props.isWalletConnected} postInfos={props.postInfos} onVote={props.onPostMessage} />
     </>
   );
 };
 
-const Topics = (props) => {
+const Profile = (props) => {
   return (
     <>
-      <header>Topics</header>
-      <Outlet />
+      <header>Customise your duck</header>
+      <NameChange isLoggedIn={props.isWalletConnected} onPostMessage={props.onPostMessage} username={props.username} setUsername={props.setUsername} />
     </>
   );
 };
@@ -107,38 +114,6 @@ const Users = () => {
     </>
   );
 };
-
-const TopicResults = () => {
-  const [topicPostInfos, setTopicPostInfos] = React.useState([]);
-  const [isSearching, setIsSearching] = React.useState(false);
-  const { topic } = useParams();
-  const navigate = useNavigate();
-
-  const onTopicSearch = (topic) => {
-    navigate(`/topics/${topic}`);
-  }
-
-  React.useEffect(() => {
-    setIsSearching(true);
-    setTopicPostInfos([]);
-    try {
-      getPostInfos(null,topic).then(posts => { 
-        setTopicPostInfos(posts);
-        setIsSearching(false);
-      });
-    } catch (error) {
-      console.logErrorg(error);
-      setIsSearching(false);
-    }
-  }, [topic])
-  return (
-    <>
-    <TopicSearch searchInput={topic} onSearch={onTopicSearch}/>
-    {isSearching && <ProgressSpinner />}
-    <Posts postInfos={topicPostInfos} />
-    </>
-  )
-}
 
 function UserResults() {
   const [userPostInfos, setUserPostInfos] = React.useState([]);

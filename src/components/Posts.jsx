@@ -1,40 +1,67 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { maxMessageLength, abbreviateAddress, getPostTime } from '../lib/api';
+import { maxMessageLength, abbreviateAddress, getPostTime, contract, connectedWalletAddress, addressToName, addressToPicture } from '../lib/api';
 
 export const Posts = (props) => {
   return (
     <div>
       {props.postInfos.map(postInfo =>
-        <PostItem key={postInfo.txid} postInfo={postInfo} />
+        <PostItem key={postInfo.txid} postInfo={postInfo} isLoggedIn={props.isLoggedIn} onVote={props.onVote} />
       )}
     </div>
   )
 };
 
+const shortenAddress = (address) => {
+  return address.substring(0, 5) + '...' + address.substring(address.length - 5);
+};
+
 const PostItem = (props) => {
   const [postMessage, setPostMessage] = React.useState("");
   const [statusMessage, setStatusMessage] = React.useState("");
-  const [ownerName, setOwnerName] = React.useState("");
+  const [ownerName, setOwnerName] = React.useState(addressToName[props.postInfo.owner] || shortenAddress(props.postInfo.owner));
   const [ownerHandle, setOwnerHandle] = React.useState("");
-  const [imgSrc, setImgSrc] = React.useState(props.postInfo.imgSrc || 'img_avatar.png');
+  const [iconSrc, setIconSrc] = React.useState(addressToPicture[props.postInfo.owner] ? `https://arweave.net/${addressToPicture[props.postInfo.owner]}` : 'img_avatar.png');
+  const [imageSrc, setImageSrc] = React.useState(props.postInfo.image ? `https://arweave.net/${props.postInfo.image}` : '');
+
+  async function onUpVote(id) {
+    const input = {
+      function: 'upVoteMessage',
+      messageId: id
+    };
+
+    try {
+      // `interactWrite` will return the transaction ID.
+      await contract.connect('use_wallet').writeInteraction(input);
+      // setTopicValue("");
+      if (props.onVote) {
+        props.onVote(id);
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
+  }
+
+  async function onDownVote(id) {
+    const input = {
+      function: 'downVoteMessage',
+      messageId: id
+    };
+    try {
+      // `interactWrite` will return the transaction ID.
+      await contract.connect('use_wallet').writeInteraction(input);
+      // setTopicValue("");
+      if (props.onVote) {
+        props.onVote(id);
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
+  }
 
   React.useEffect(() => {
     let newPostMessage = "";
     let newStatus = "";
-
-    const getAccountInfo = async () => {
-      setOwnerName(abbreviateAddress(props.postInfo.owner));
-      const info = await props.postInfo.account;
-      setOwnerName(info.handle);
-      if(info.handle[0] == '@') {
-        props.postInfo.imgSrc = info.profile.avatarURL;
-        setImgSrc(info.profile.avatarURL);
-        setOwnerName(info.profile.name);
-        setOwnerHandle(info.handle);
-      } 
-    }
-    getAccountInfo();
     
     if (!props.postInfo.message) {
       setStatusMessage("loading...");
@@ -81,7 +108,7 @@ const PostItem = (props) => {
   return (
     <div className="postItem">
       <div className="postLayout">
-      <img className="profileImage" src={imgSrc} alt="ProfileImage" />
+      <img className="profileImage" src={iconSrc} alt="ProfileImage" />
         <div>
           <div className="postOwnerRow">
             <Link to={`/users/${props.postInfo.owner}`}>{ownerName}</Link>
@@ -91,6 +118,17 @@ const PostItem = (props) => {
           <div className="postRow">
             {props.postInfo.message || postMessage}
             {statusMessage && <div className="status"> {statusMessage}</div>}
+            {imageSrc ? <img src={imageSrc}></img> : null}
+          </div>
+          <div className="votesRow">
+            <button className={"voteButton " + (props.postInfo.upvoteAccountList.includes(connectedWalletAddress) ? "filled" : "")}
+                onClick={() => onUpVote(props.postInfo.txid)}>
+              👍 {props.postInfo.upvotes}
+            </button>
+            <button className={"voteButton " + (props.postInfo.downvoteAccountList.includes(connectedWalletAddress) ? "filled" : "")}
+                onClick={() => onDownVote(props.postInfo.txid)}>
+              👎 {props.postInfo.downvotes}
+            </button>
           </div>
         </div>
       </div>

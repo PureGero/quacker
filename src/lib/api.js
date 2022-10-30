@@ -4,7 +4,22 @@ import { WarpFactory } from 'warp-contracts';
 
 export const arweave = Arweave.init({});
 export let warp = WarpFactory.forMainnet();
-export let contract = warp.contract("152OUN0NMkjd38Ff_w2a-sEZbaoxP4uRyBeLNxowIzU");
+export let contract = warp.contract("wB_Jarz7T6JVoh9vIQnqQHUHokFhKht2QwaEDTkKneg");
+export let connectedWalletAddress = null;
+export let addressToName = {};
+export let addressToPicture = {};
+
+export const setAddressToName = map => {
+  addressToName = map;
+};
+
+export const setAddressToPicture = map => {
+  addressToPicture = map;
+};
+
+export const setConnectedWalletAddress = (address) => {
+  connectedWalletAddress = address;
+};
 
 export const account = new Account({
   cacheIsActivated: true,
@@ -30,6 +45,11 @@ export const createPostInfo = (message) => {
     length: message.content.length,
     timestamp: timestamp,
     request: null,
+    upvotes: message.votes.likes.length,
+    downvotes: message.votes.dislikes.length,
+    upvoteAccountList: message.votes.likes,
+    downvoteAccountList: message.votes.dislikes,
+    image: message.image
   }
   if (postInfo.length <= maxMessageLength) {
     postInfo.request = arweave.api.get(`/${message.id}`, { timeout: 10000 })
@@ -73,15 +93,6 @@ export const abbreviateAddress = (address) => {
   const firstFive = address.substring(0,5);
   const lastFour = address.substring(address.length-4);
   return `${firstFive}..${lastFour }`;
-}
-
-export const getTopicString = (input) => {
-  let dashedTopic = (input || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-  return dashedTopic;
 }
 
 export const delay = (t) => {
