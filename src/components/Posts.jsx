@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { isVouched } from 'vouchdao'
 import { maxMessageLength, abbreviateAddress, getPostTime, contract, connectedWalletAddress, addressToName, addressToPicture } from '../lib/api';
 
 export const Posts = (props) => {
@@ -23,6 +24,7 @@ const PostItem = (props) => {
   const [ownerHandle, setOwnerHandle] = React.useState("");
   const [iconSrc, setIconSrc] = React.useState(addressToPicture[props.postInfo.owner] ? `https://arweave.net/${addressToPicture[props.postInfo.owner]}` : 'img_avatar.png');
   const [imageSrc, setImageSrc] = React.useState(props.postInfo.image ? `https://arweave.net/${props.postInfo.image}` : '');
+  const [isVouched, setIsVouched] = React.useState(false);
 
   async function onUpVote(id) {
     const input = {
@@ -62,6 +64,11 @@ const PostItem = (props) => {
   React.useEffect(() => {
     let newPostMessage = "";
     let newStatus = "";
+
+    async function loadIsVouched() {
+      setIsVouched(await isVouched(props.postInfo.owner));
+    }
+    loadIsVouched();
     
     if (!props.postInfo.message) {
       setStatusMessage("loading...");
@@ -112,7 +119,7 @@ const PostItem = (props) => {
         <div>
           <div className="postOwnerRow">
             <Link to={`/users/${props.postInfo.owner}`}>{ownerName}</Link>
-            <span className="gray"> <span className="handle">{ownerHandle}</span> • </span>
+            <span className="gray"> <span className="handle">{ownerHandle} {isVouched ? "✅" : ""}</span> • </span>
             <time>{getPostTime(props.postInfo.timestamp)}</time>
           </div>
           <div className="postRow">

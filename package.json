@@ -17,6 +17,7 @@
     "react-scripts": "5.0.0",
     "react-textarea-autosize": "^8.3.3",
     "smartweave": "^0.4.49",
+    "vouchdao": "^0.2.2",
     "warp-contracts": "^1.2.13",
     "web-vitals": "^2.1.4"
   },

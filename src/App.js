@@ -42,7 +42,7 @@ const App = () => {
     const interval = setInterval(() => {
       // Load new posts every minute
       loadPostInfos();
-    }, 60000);
+    }, 5000);
   
     return () => clearInterval(interval); // On unmount
   }, [])
